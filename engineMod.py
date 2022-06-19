@@ -122,7 +122,6 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
         image_name = zr[:-3] + '_' + zr[-3:]
         # save_json(res2[list(res2.keys())[0]],pathlib.Path("Predictions/EP"+str(epoch)+"/"+image_name+".json"))
         # run["Predictions/EP"+str(epoch)+"/"+image_name+".json"].upload("Predictions/EP"+str(epoch)+"/"+image_name+".json")
-        print(res2[list(res2.keys())[0]])
         res2[list(res2.keys())[0]]["Image_id"],res2[list(res2.keys())[0]]["Epoch"] = image_name,epoch
         PredDict = PredDict.append(res2[list(res2.keys())[0]], ignore_index=True)
 
