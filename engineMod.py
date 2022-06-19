@@ -93,8 +93,13 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
     labs = []
     targs = []
 
-    if not os.path.exists('Predictions/EP' + str(epoch)):
-      os.makedirs('Predictions/EP' + str(epoch))
+    # if not os.path.exists('Predictions/EP' + str(epoch)):
+    #   os.makedirs('Predictions/EP' + str(epoch))
+
+    if epoch == 0:
+      PredDict = pd.DataFrame()
+    else:
+      PredDict = pd.read_csv('/content/Predictions.csv', index_col=0)
 
     for images, targets in metric_logger.log_every(data_loader, 100, header):
         images = list(img.to(device) for img in images)
@@ -113,9 +118,11 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
         l = 11 - len(r)
         z = '0' * l
         zr = z + r
-        rz = zr[:-3] + '_' + zr[-3:]
-        save_json(res2[list(res2.keys())[0]],pathlib.Path("Predictions/EP"+str(epoch)+"/"+rz+".json"))
-        run["Predictions/EP"+str(epoch)+"/"+rz+".json"].upload("Predictions/EP"+str(epoch)+"/"+rz+".json")
+        image_name = zr[:-3] + '_' + zr[-3:]
+        # save_json(res2[list(res2.keys())[0]],pathlib.Path("Predictions/EP"+str(epoch)+"/"+image_name+".json"))
+        # run["Predictions/EP"+str(epoch)+"/"+image_name+".json"].upload("Predictions/EP"+str(epoch)+"/"+image_name+".json")
+        pred["Image_id"],pred["Epoch"] = image_name,epoch
+        PredDict = PredDict.append(pred, ignore_index=True)
 
         labs.append(res[list(res.keys())[0]]['labels'])
         ts = [di['labels'] for di in targets]
@@ -126,6 +133,10 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
+
+    PredDict.to_csv('/content/Predictions.csv')
+    self.logger.experiment.log_artifact('/content/Predictions.csv', 'Predictions/Predictions.csv')
+    run["Predictions/Predictions.csv"].upload("Predictions.csv")
 
     labs = [torch.unique(item) for item in labs]
     pred_cls_oh = torch.zeros(len(labs),model.roi_heads.box_predictor.cls_score.out_features)
