@@ -96,11 +96,14 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
 
     # if not os.path.exists('Predictions/EP' + str(epoch)):
     #   os.makedirs('Predictions/EP' + str(epoch))
+    if not os.path.exists('Predictions'):
+        os.makedirs('Predictions')
 
-    if epoch == 0:
-      PredDict = pd.DataFrame()
-    else:
-      PredDict = pd.read_csv('/content/Predictions.csv', index_col=0)
+    # if epoch == 0:
+    #   PredDict = pd.DataFrame()
+    # else:
+    #   PredDict = pd.read_csv('/content/Predictions.csv', index_col=0)
+    PredDict = pd.DataFrame()
 
     for images, targets in metric_logger.log_every(data_loader, 100, header):
         images = list(img.to(device) for img in images)
@@ -135,8 +138,8 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
         evaluator_time = time.time() - evaluator_time
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
 
-    PredDict.to_csv('/content/Predictions.csv')
-    run["Predictions/Predictions.csv"].upload("Predictions.csv")
+    PredDict.to_csv('/content/Predictions/Epoch_'+str(epoch)+'_Predictions.csv')
+    run["Predictions/Epoch_"+str(epoch)+"_Predictions.csv"].upload('/content/Predictions/Epoch_'+str(epoch)+'_Predictions.csv')
 
     labs = [torch.unique(item) for item in labs]
     pred_cls_oh = torch.zeros(len(labs),model.roi_heads.box_predictor.cls_score.out_features)
