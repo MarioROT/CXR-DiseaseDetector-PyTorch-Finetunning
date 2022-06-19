@@ -6,6 +6,7 @@ import torch
 import os
 import pathlib
 import json
+import pandas as pd
 
 import torchvision.models.detection.mask_rcnn
 
@@ -121,8 +122,9 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
         image_name = zr[:-3] + '_' + zr[-3:]
         # save_json(res2[list(res2.keys())[0]],pathlib.Path("Predictions/EP"+str(epoch)+"/"+image_name+".json"))
         # run["Predictions/EP"+str(epoch)+"/"+image_name+".json"].upload("Predictions/EP"+str(epoch)+"/"+image_name+".json")
-        pred["Image_id"],pred["Epoch"] = image_name,epoch
-        PredDict = PredDict.append(pred, ignore_index=True)
+        print(res2[list(res2.keys())[0]])
+        res2[list(res2.keys())[0]]["Image_id"],res2[list(res2.keys())[0]]["Epoch"] = image_name,epoch
+        PredDict = PredDict.append(res2[list(res2.keys())[0]], ignore_index=True)
 
         labs.append(res[list(res.keys())[0]]['labels'])
         ts = [di['labels'] for di in targets]
@@ -135,7 +137,6 @@ def evaluate(model, data_loader, device, epoch, run, torch_mets = None):
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
 
     PredDict.to_csv('/content/Predictions.csv')
-    self.logger.experiment.log_artifact('/content/Predictions.csv', 'Predictions/Predictions.csv')
     run["Predictions/Predictions.csv"].upload("Predictions.csv")
 
     labs = [torch.unique(item) for item in labs]
