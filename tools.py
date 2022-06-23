@@ -206,18 +206,18 @@ class ObjectDetectionDataSet(torch.utils.data.Dataset):
 
         # print('Before: ', target)
         # Encasillar
-        # if self.tgt_int64:
-        #     x = torch.from_numpy(x).type(torch.float32)
-        #     tgt = {
-        #         key: torch.from_numpy(value).type(torch.int64)
-        #         for key, value in tgt.items()
-        #     }
-        # else:
-        #     x = torch.from_numpy(x).type(torch.float32)
-        #     tgt = {
-        #         key: torch.from_numpy(value).type(torch.float64)#int64)
-        #         for key, value in tgt.items()
-        #     }
+        if self.tgt_int64:
+            x = torch.from_numpy(x).type(torch.float32)
+            tgt = {
+                key: torch.from_numpy(value).type(torch.int64)
+                for key, value in tgt.items()
+            }
+        else:
+            x = torch.from_numpy(x).type(torch.float32)
+            tgt = {
+                key: torch.from_numpy(value).type(torch.float64)#int64)
+                for key, value in tgt.items()
+            }
         # print('After: ', target)
 
         boxes = tgt['boxes']

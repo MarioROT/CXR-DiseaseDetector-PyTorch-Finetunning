@@ -19,8 +19,24 @@ import time
 import datetime
 
 import json
+import shutil
 
 def main():
+    params = {'OWNER': 'rubsini',  # Nombre de usuario en Neptune.ai
+          'PROJECT': 'CXR-Fine-Tunning', # Nombre dle proyecto creado en Neptune.ai
+          'LOG_MODEL': True,  # Si se cargará el modelo a neptune después del entrenamiento
+          'BATCH_SIZE': 2, # Tamaño del lote
+          'LR': 0.001, # Tasa de aprendizaje
+          'PRECISION': 16, # Precisión de cálculo
+          'CLASSES': 9, # Número de clases (incluyendo el fondo)
+          'SEED': 42, # Semilla de aleatoreidad
+          'EPOCHS': 500, # Número máximo de épocas
+          'IMG_MEAN': [0.485, 0.456, 0.406], # Medias de ImageNet (Donde se preentrenaron los modelos)
+          'IMG_STD': [0.229, 0.224, 0.225], # Desviaciones estándar de ImageNet (Donde se preentrenaron los modelos)
+          'IOU_THRESHOLD': 0.5, # Umbral de Intersección sobre Union para evaluar predicciones en entrenamiento
+          'MOMENTUM': 0.9,
+          'WEIGHT_DECAY': 0.0005
+          }
 
     # Directorio donde se enceuentran las imágenes y etiquetas para entrenamiento
     root = pathlib.Path('D:/GitHub/Mariuki/DiseaseDetector/data/ChestXRay8/512')
@@ -59,21 +75,10 @@ def main():
     ltr,ptr,lvd,pvd,lts,pts = len(inputs_train), len(inputs_train)/lt, len(inputs_valid), len(inputs_valid)/lt, len(inputs_test), len(inputs_test)/lt
     print('Total de datos: {}\nDatos entrenamiento: {} ({:.2f}%)\nDatos validación: {} ({:.2f}%)\nDatos Prueba: {} ({:.2f}%)'.format(lt,ltr,ptr,lvd,pvd,lts,pts))
 
-    # dataset_train = ObjectDetectionDataSet(inputs=inputs_train,
-    #                                        targets=targets_train,
-    #                                        transform=None,
-    #                                        add_dim = None,
-    #                                        use_cache=True,
-    #                                        convert_to_format=None,
-    #                                        mapping=mapping,
-    #                                        tgt_int64=False)
-    inputs_train
 
     import torchvision
     from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
     from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
-
-
 
     # Logging metadata
     import neptune.new as neptune
@@ -82,8 +87,9 @@ def main():
     # Llave personal de usuario obtenida de Neptune.ai
     NEPTUNE_API_TOKEN = str(sys.argv[1]) #os.getenv("NEPTUNE")
     # Se puede copiar y poner directamente la llave. O configurar como variable de entorno
-    run = neptune.init(project='rubsini/CXR-Fine-Tunning',
+    run = neptune.init(project=f'{params["OWNER"]}/{params["PROJECT"]}',
                        api_token=NEPTUNE_API_TOKEN)
+    run['parameters'] = params
 
     # run.stop()
 
@@ -134,7 +140,7 @@ def main():
 
     # define training and validation data loaders
     data_loader = torch.utils.data.DataLoader(
-        dataset, batch_size=2, shuffle=True, num_workers=4,
+        dataset, batch_size=params['BATCH_SIZE'], shuffle=True, num_workers=4,
         collate_fn=utils.collate_fn)
 
     data_loader_test = torch.utils.data.DataLoader(
@@ -144,7 +150,7 @@ def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # our dataset has nine classes - background and 8 diseases types
-    num_classes = 9
+    num_classes = params['CLASSES']
 
     # get the model using our helper function
     model = get_instance_segmentation_model(num_classes)
@@ -153,8 +159,8 @@ def main():
 
     # construct an optimizer
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=0.005,
-                                momentum=0.9, weight_decay=0.0005)
+    optimizer = torch.optim.SGD(params, lr=params['LR'],
+                                momentum=params['MOMENTUM'], weight_decay=params['WEIGHT_DECAY'])
 
     # and a learning rate scheduler which decreases the learning rate by
     # 10x every 3 epochs
@@ -162,9 +168,11 @@ def main():
                                                    step_size=3,
                                                    gamma=0.1)
 
+    if not os.path.exists('Model_States'):
+        os.makedirs('Model_States')
     # let's train it for 10 epochs
     from torch.optim.lr_scheduler import StepLR
-    num_epochs = 50
+    num_epochs = params['EPOCHS']
 
     for epoch in range(num_epochs):
        # train for one epoch, printing every 10 iterations
@@ -193,6 +201,15 @@ def main():
        run["logs/AR @[ IoU=0.50:0.95 | area=medium | maxDets=100 ]"].log(cc.coco_eval['bbox'].stats[10])
        run["logs/AR @[ IoU=0.50:0.95 | area= large | maxDets=100 ]"].log(cc.coco_eval['bbox'].stats[11])
        # print("Coco Eval:", cc)
+
+       torch.save(model.state_dict(), 'Model_States/CXR_{}.pt'.format(epoch))
+       run["Model States/CXR_{}.pt".format(epoch)].upload('Model_States/CXR_{}.pt'.format(epoch))
+
+       run.stop()
+       shutil.rmtree('Model_States')
+       shutil.rmtree('Predictions')
+       # run['Model States/CXR_1.pt'].download()
+       # model.load_state_dict(torch.load('CXR_1.pt.pt')) # https://pytorch.or
 
 if __name__ == "__main__":
     main()
