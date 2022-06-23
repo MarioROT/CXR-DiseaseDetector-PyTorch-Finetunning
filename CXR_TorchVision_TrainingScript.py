@@ -158,8 +158,8 @@ def main():
     model.to(device)
 
     # construct an optimizer
-    params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=params['LR'],
+    parameters = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.SGD(parameters, lr=params['LR'],
                                 momentum=params['MOMENTUM'], weight_decay=params['WEIGHT_DECAY'])
 
     # and a learning rate scheduler which decreases the learning rate by
@@ -205,9 +205,9 @@ def main():
        torch.save(model.state_dict(), 'Model_States/CXR_{}.pt'.format(epoch))
        run["Model States/CXR_{}.pt".format(epoch)].upload('Model_States/CXR_{}.pt'.format(epoch))
 
-       run.stop()
-       shutil.rmtree('Model_States')
-       shutil.rmtree('Predictions')
+    run.stop()
+    shutil.rmtree('Model_States')
+    shutil.rmtree('Predictions')
        # run['Model States/CXR_1.pt'].download()
        # model.load_state_dict(torch.load('CXR_1.pt.pt')) # https://pytorch.or
 
