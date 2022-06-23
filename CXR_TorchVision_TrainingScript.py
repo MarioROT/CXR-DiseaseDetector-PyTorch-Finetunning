@@ -30,7 +30,7 @@ def main():
           'PRECISION': 16, # Precisión de cálculo
           'CLASSES': 9, # Número de clases (incluyendo el fondo)
           'SEED': 42, # Semilla de aleatoreidad
-          'EPOCHS': 500, # Número máximo de épocas
+          'EPOCHS': 50, # Número máximo de épocas
           'IMG_MEAN': [0.485, 0.456, 0.406], # Medias de ImageNet (Donde se preentrenaron los modelos)
           'IMG_STD': [0.229, 0.224, 0.225], # Desviaciones estándar de ImageNet (Donde se preentrenaron los modelos)
           'IOU_THRESHOLD': 0.5, # Umbral de Intersección sobre Union para evaluar predicciones en entrenamiento
