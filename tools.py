@@ -272,7 +272,7 @@ def get_transform(train):
         transforms.append(T.RandomHorizontalFlip(0.5))
     return T.Compose(transforms)
 
-class MutilabelClassificationDataset(Dataset):
+class MutilabelClassificationDataset(torch.utils.data.Dataset):
     def __init__(self, data_path, anno_path, transforms):
         self.transforms = transforms
         with open(anno_path) as fp:
