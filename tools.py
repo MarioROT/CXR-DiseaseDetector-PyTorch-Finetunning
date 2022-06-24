@@ -271,3 +271,43 @@ def get_transform(train):
         # and ground-truth for data augmentation
         transforms.append(T.RandomHorizontalFlip(0.5))
     return T.Compose(transforms)
+
+class MutilabelClassificationDataset(Dataset):
+    def __init__(self, data_path, anno_path, transforms):
+        self.transforms = transforms
+        with open(anno_path) as fp:
+            json_data = json.load(fp)
+        samples = json_data['samples']
+        self.classes = json_data['labels']
+
+        self.imgs = []
+        self.annos = []
+        self.data_path = data_path
+        print('loading', anno_path)
+        for sample in samples:
+            self.imgs.append(sample['image_name'])
+            self.annos.append(sample['image_labels'])
+        for item_id in range(len(self.annos)):
+            item = self.annos[item_id]
+            vector = [cls in item for cls in self.classes]
+            self.annos[item_id] = np.array(vector, dtype=float)
+            # print("Item ID: ", item_id,'Item: ', item, 'Vector:', vector, 'Annos: ', self.annos)
+
+    def __getitem__(self, item):
+        anno = self.annos[item]
+        img_path = os.path.join(self.data_path, self.imgs[item])
+        img = Image.open(img_path)
+        if self.transforms is not None:
+            img = self.transforms(img)
+        return img, anno
+
+    def __len__(self):
+        return len(self.imgs)
+
+def adapt_data(data, classes, file_name):
+    inputs, targets = data
+    samples = []
+    for i in range(len(targets)):
+        samples.append({"image_name":inputs[i].__str__()[-16:],"image_labels":read_json(targets[i])['labels']})
+    Js = {"samples":samples, "labels": list(classes.keys())}
+    save_json(Js, pathlib.Path(file_name))
