@@ -1,4 +1,5 @@
 import torchmetrics
+from sklearn.metrics import precision_score, recall_score, f1_score
 import torch
 import numpy as np
 
@@ -28,6 +29,22 @@ def tm(preds,target, n_clases= None, mode = 'normal', mdmc = None, prnt = None):
         print('Mode {}: \n Acc:{:.4f} - Pres:{:.4f} - Rec:{:.4f} - F1Sc:{:.4f}'.format(mode,accuracy(preds, target),precision(preds, target),recall(preds, target),f1score(preds, target)))
 
     return accuracy(preds, target),precision(preds, target),recall(preds, target),f1score(preds, target)
+
+#-------------- Usando las Implementaciones de sklearn -----------------#
+
+def sklearn_metrics(pred, target, threshold=0.5):
+  pred = np.array(pred > threshold, dtype=float)
+  # print('Pred:', pred, 'Target: ', target)
+  return {'micro/precision': precision_score(y_true=target, y_pred=pred, average='micro', zero_division = 0),
+          'micro/recall': recall_score(y_true=target, y_pred=pred, average='micro', zero_division = 0),
+          'micro/f1': f1_score(y_true=target, y_pred=pred, average='micro', zero_division = 0),
+          'macro/precision': precision_score(y_true=target, y_pred=pred, average='macro', zero_division = 0),
+          'macro/recall': recall_score(y_true=target, y_pred=pred, average='macro', zero_division = 0),
+          'macro/f1': f1_score(y_true=target, y_pred=pred, average='macro', zero_division = 0),
+          'samples/precision': precision_score(y_true=target, y_pred=pred, average='samples', zero_division = 0),
+          'samples/recall': recall_score(y_true=target, y_pred=pred, average='samples', zero_division = 0),
+          'samples/f1': f1_score(y_true=target, y_pred=pred, average='samples', zero_division = 0),
+          }
 
 #-------------- Implementaciones propias de las métricas -----------------#
 

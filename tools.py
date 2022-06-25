@@ -15,6 +15,8 @@ import json
 
 import utils
 import transforms as T
+from matplotlib import pyplot as plt
+from numpy import printoptions
 
 import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
@@ -311,3 +313,19 @@ def adapt_data(data, classes, file_name):
         samples.append({"image_name":inputs[i].__str__()[-16:],"image_labels":read_json(targets[i])['labels']})
     Js = {"samples":samples, "labels": list(classes.keys())}
     save_json(Js, pathlib.Path(file_name))
+
+def checkpoint_save(model, save_path, epoch):
+    f = os.path.join(save_path, 'checkpoint-{:06d}.pth'.format(epoch))
+    if 'module' in dir(model):
+        torch.save(model.module.state_dict(), f)
+    else:
+        torch.save(model.state_dict(), f)
+    print('saved checkpoint:', f)
+
+def show_sample(img, binary_img_labels):
+  # Convert the binary labels back to the text representation.
+  img_labels = np.array(dataset_val.classes)[np.argwhere(binary_img_labels > 0)[:, 0]]
+  plt.imshow(img)
+  plt.title("{}".format(', '.join(img_labels)))
+  plt.axis('off')
+  plt.show()
