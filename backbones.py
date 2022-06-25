@@ -6,12 +6,26 @@ from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops import misc as misc_nn_ops
 from torchvision.ops.feature_pyramid_network import FeaturePyramidNetwork
 
+# Use the torchvision's implementation of ResNeXt, but add FC layer for a different number of classes (27) and a Sigmoid instead of a default Softmax.
+class GetModel(nn.Module):
+    def __init__(self, n_classes, backbone_net):
+        super().__init__()
+        resnet = backbones.get_backbone(backbone_net)
+        resnet.fc = nn.Sequential(
+            nn.Dropout(p=0.2),
+            nn.Linear(in_features=resnet.fc.in_features, out_features=n_classes)
+        )
+        self.base_model = resnet
+        self.sigm = nn.Sigmoid()
 
-def get_efficientnet_backbone(backbone_name: str):
+    def forward(self, x):
+        return self.sigm(self.base_model(x))
+
+
+def get_backbone(backbone_name: str):
     """
-    Regresa una arquitectura base versión de EfficientNet pre-entrenada en ImageNet.
-    Además remueve la capa de submuestreo promedio (average-pooling) y la capa
-    lineal al final de la arquitectura.
+    Regresa una arquitectura base versión de EfficientNet, ShuffleNet v2,
+    MobileNet v2 o v3, EfficientNet pre-entrenada en ImageNet.
     """
     if backbone_name == "efficientnet_b0":
         pretrained_model = models.efficientnet_b0(pretrained=True, progress=False)
@@ -37,41 +51,13 @@ def get_efficientnet_backbone(backbone_name: str):
     elif backbone_name == "efficientnet_b7":
         pretrained_model = models.efficientnet_b7(pretrained=True, progress=False)
         out_channels = 2560
-
-    # print('Pretrained: ', pretrained_model) # Si se presenta problema con algun backbone revisar que se puedan quitar [:-2] linea abajo
-    backbone = torch.nn.Sequential(*list(pretrained_model.children())[:-2])
-    # print('Backbone: ', backbone)
-    backbone.out_channels = out_channels
-
-    return backbone
-
-def get_mobilenet_backbone(backbone_name: str):
-    """
-    Regresa una arquitectura base versión de MobileNet pre-entrenada en ImageNet.
-    Además remueve la capa de submuestreo promedio (average-pooling) y la capa
-    lineal al final de la arquitectura.
-    """
-
-    if backbone_name == "mobilenet_v2":
+    elif backbone_name == "mobilenet_v2":
         pretrained_model = models.mobilenet_v2(pretrained=True, progress=False)
         out_channels = 1280
-        backbone = torch.nn.Sequential(*list(pretrained_model.children())[:-1])
     elif backbone_name == "mobilenet_v3":
         pretrained_model = models.mobilenet_v3_large(pretrained=True, progress=False)
         out_channels = 1280
-        backbone = torch.nn.Sequential(*list(pretrained_model.children())[:-2])
-
-    backbone.out_channels = out_channels
-
-    return backbone
-
-def get_resnet_backbone(backbone_name: str):
-    """
-    Regresa una arquitectura base versión de ResNet pre-entrenada en ImageNet.
-    Además remueve la capa de submuestreo promedio (average-pooling) y la capa
-    lineal al final de la arquitectura.
-    """
-    if backbone_name == "resnet18":
+    elif backbone_name == "resnet18":
         pretrained_model = models.resnet18(pretrained=True, progress=False)
         out_channels = 512
     elif backbone_name == "resnet34":
@@ -86,19 +72,9 @@ def get_resnet_backbone(backbone_name: str):
     elif backbone_name == "resnet152":
         pretrained_model = models.resnet152(pretrained=True, progress=False)
         out_channels = 2048
-    print('Pretrained Model: \n', pretrained_model)
-    backbone = torch.nn.Sequential(*list(pretrained_model.children())[:-2])
-    backbone.out_channels = out_channels
-    print('Backbone: \n', backbone)
-    return backbone
-
-def get_shufflenet_v2_backbone(backbone_name: str):
-    """
-    Regresa una arquitectura base versión de ShuffleNet V2 pre-entrenada en ImageNet.
-    Además remueve la capa de submuestreo promedio (average-pooling) y la capa
-    lineal al final de la arquitectura.
-    """
-    if backbone_name == "shufflenet_v2_x0_5":
+    elif backbone_name == "resnext50_32x4d":
+        pretrained_model = models.resnext50_32x4d(pretrained=True)
+    elif backbone_name == "shufflenet_v2_x0_5":
         pretrained_model = models.shufflenet_v2_x0_5(pretrained=True, progress=False)
         out_channels = 1024
     elif backbone_name == "shufflenet_v2_x1_0":
@@ -111,9 +87,4 @@ def get_shufflenet_v2_backbone(backbone_name: str):
         pretrained_model = models.shufflenet_v2_x2_0(pretrained=True, progress=False)
         out_channels = 2048
 
-    # print('Pretrained: ', pretrained_model)
-    backbone = torch.nn.Sequential(*list(pretrained_model.children())[:-1])
-    # print('Backbone: ', backbone)
-    backbone.out_channels = out_channels
-
-    return backbone
+    return pretrained_model #backbone
