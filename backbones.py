@@ -27,31 +27,8 @@ def get_backbone(backbone_name: str):
     Regresa una arquitectura base versión de EfficientNet, ShuffleNet v2,
     MobileNet v2 o v3, EfficientNet pre-entrenada en ImageNet.
     """
-    if backbone_name == "efficientnet_b0":
-        pretrained_model = models.efficientnet_b0(pretrained=True, progress=False)
-        out_channels = 1280
-    elif backbone_name == "efficientnet_b1":
-        pretrained_model = models.efficientnet_b1(pretrained=True, progress=False)
-        out_channels = 1280
-    elif backbone_name == "efficientnet_b2":
-        pretrained_model = models.efficientnet_b2(pretrained=True, progress=False)
-        out_channels = 1408
-    elif backbone_name == "efficientnet_b3":
-        pretrained_model = models.efficientnet_b3(pretrained=True, progress=False)
-        out_channels = 1536
-    elif backbone_name == "efficientnet_b4":
-        pretrained_model = models.efficientnet_b4(pretrained=True, progress=False)
-        out_channels = 1792
-    elif backbone_name == "efficientnet_b5":
-        pretrained_model = models.efficientnet_b5(pretrained=True, progress=False)
-        out_channels = 2048
-    elif backbone_name == "efficientnet_b6":
-        pretrained_model = models.efficientnet_b6(pretrained=True, progress=False)
-        out_channels = 2304
-    elif backbone_name == "efficientnet_b7":
-        pretrained_model = models.efficientnet_b7(pretrained=True, progress=False)
-        out_channels = 2560
-    elif backbone_name == "mobilenet_v2":
+
+    if backbone_name == "mobilenet_v2":
         pretrained_model = models.mobilenet_v2(pretrained=True, progress=False)
         out_channels = 1280
     elif backbone_name == "mobilenet_v3":
@@ -86,5 +63,29 @@ def get_backbone(backbone_name: str):
     elif backbone_name == "shufflenet_v2_x2_0":
         pretrained_model = models.shufflenet_v2_x2_0(pretrained=True, progress=False)
         out_channels = 2048
+    # elif backbone_name == "efficientnet_b0":
+    #     pretrained_model = models.efficientnet_b0(pretrained=True, progress=False)
+    #     out_channels = 1280
+    # elif backbone_name == "efficientnet_b1":
+    #     pretrained_model = models.efficientnet_b1(pretrained=True, progress=False)
+    #     out_channels = 1280
+    # elif backbone_name == "efficientnet_b2":
+    #     pretrained_model = models.efficientnet_b2(pretrained=True, progress=False)
+    #     out_channels = 1408
+    # elif backbone_name == "efficientnet_b3":
+    #     pretrained_model = models.efficientnet_b3(pretrained=True, progress=False)
+    #     out_channels = 1536
+    # elif backbone_name == "efficientnet_b4":
+    #     pretrained_model = models.efficientnet_b4(pretrained=True, progress=False)
+    #     out_channels = 1792
+    # elif backbone_name == "efficientnet_b5":
+    #     pretrained_model = models.efficientnet_b5(pretrained=True, progress=False)
+    #     out_channels = 2048
+    # elif backbone_name == "efficientnet_b6":
+    #     pretrained_model = models.efficientnet_b6(pretrained=True, progress=False)
+    #     out_channels = 2304
+    # elif backbone_name == "efficientnet_b7":
+    #     pretrained_model = models.efficientnet_b7(pretrained=True, progress=False)
+    #     out_channels = 2560
 
     return pretrained_model #backbone

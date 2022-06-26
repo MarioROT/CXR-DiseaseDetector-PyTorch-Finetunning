@@ -314,13 +314,14 @@ def adapt_data(data, classes, file_name):
     Js = {"samples":samples, "labels": list(classes.keys())}
     save_json(Js, pathlib.Path(file_name))
 
-def checkpoint_save(model, save_path, epoch):
+def checkpoint_save(model, save_path, epoch, run):
     f = os.path.join(save_path, 'checkpoint-{:06d}.pth'.format(epoch))
     if 'module' in dir(model):
         torch.save(model.module.state_dict(), f)
     else:
         torch.save(model.state_dict(), f)
-    print('saved checkpoint:', f)
+    run["Model States/checkpoint-{:06d}.pth".format(epoch)].upload(f)
+    print('saved & uploaded checkpoint:', f)
 
 def show_sample(img, binary_img_labels):
   # Convert the binary labels back to the text representation.
