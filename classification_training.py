@@ -117,8 +117,8 @@ def main():
     num_workers = params["N_WORKERS"] #2 # Number of CPU processes for data preprocessing
     lr = params["LR"]# 1e-3 # Learning rate
     batch_size = params["BATCH_SIZE"]# 24
-    save_freq = 1 # Save checkpoint frequency (epochs)
-    test_freq = 200 # Test model frequency (iterations)
+    save_freq = 50 # Save checkpoint frequency (epochs)
+    test_freq = 25 # Test model frequency (iterations)
     max_epoch_number = params["EPOCHS"] # 100 # Number of epochs for training
     # Note: on the small subset of data overfitting happens after 30-35 epochs
 
@@ -187,6 +187,7 @@ def main():
     # Run training
     epoch = 0
     iteration = 0
+    best_macro_F1 = 0.0
     while True:
         batch_losses = []
         for imgs, targets in train_dataloader:
@@ -224,6 +225,7 @@ def main():
                         targets.extend(batch_targets.cpu().numpy())
 
                 result = sklearn_metrics(np.array(model_result), np.array(targets))
+                res_macro_F1 = result['macro/f1']
                 for metric in result:
                     # logger.add_scalar('test/' + metric, result[metric], iteration)
                     run["logs/test_"+metric.replace('/','_')].log(result[metric])
@@ -241,8 +243,12 @@ def main():
         loss_value = np.mean(batch_losses)
         run["logs/loss_epoch"].log(loss_value)
         print("epoch:{:2d} iter:{:3d} train: loss:{:.3f}".format(epoch, iteration, loss_value))
+        if best_macro_F1 < res_macro_F1 or epoch % save_freq == 0:
+            if best_macro_F1 <= res_macro_F1:
+                best_macro_F1 = res_macro_F1
+                s_model, s_epoch = model, epoch
         if epoch % save_freq == 0:
-            checkpoint_save(model, save_path, epoch, run)
+            checkpoint_save(s_model, save_path, s_epoch, run)
         epoch += 1
         if max_epoch_number < epoch:
             break
