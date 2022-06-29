@@ -94,5 +94,17 @@ def get_backbone(backbone_name: str):
     elif backbone_name == "efficientnet_b7":
         pretrained_model = models.efficientnet_b7(pretrained=True, progress=False)
         out_channels = 2560
+    elif backbone_name == "densenet121":
+        pretrained_model = models.densenet121(pretrained=True, progress=False)
+        out_channels = 1024
+    elif backbone_name == "densenet161":
+        pretrained_model = models.densenet161(pretrained=True, progress=False)
+        out_channels = 2208
+    elif backbone_name == "densenet169":
+        pretrained_model = models.densenet169(pretrained=True, progress=False)
+        out_channels = 1664
+    elif backbone_name == "densenet201":
+        pretrained_model = models.densenet201(pretrained=True, progress=False)
+        out_channels = 1920
 
     return pretrained_model, out_channels #backbone
